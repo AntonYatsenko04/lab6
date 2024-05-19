@@ -12,37 +12,34 @@ namespace list
         private const string LibraryFileName = "library.txt";
 
         private readonly string _connectionString =
-            $"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={Directory.GetCurrentDirectory()};Extended Properties='text;HDR=yes;FMT=Delimited'";
+            $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={Directory.GetCurrentDirectory()};Extended Properties='text;HDR=yes;FMT=Delimited'";
 
         private const string PageNumber = "PageNumber";
         private const string FontSize = "FontSize";
-        private const string BufferSize = "BufferSize";
         private const string FilePath = "FilePath";
-        private  string _fileHeader = $"{PageNumber}, {FontSize}, {BufferSize}, {FilePath}";
+        private  string _fileHeader = $"{PageNumber}, {FontSize}, {FilePath}";
 
         private readonly string _insertQuery =
-            $"INSERT INTO [{LibraryFileName}] ({PageNumber}, {FontSize}, {BufferSize}, {FilePath}) VALUES (?,?,?,?)";
+            $"INSERT INTO [{LibraryFileName}] ({PageNumber}, {FontSize}, {FilePath}) VALUES (?,?,?)";
 
         private readonly string _selectAllQuery = $"SELECT * FROM [{LibraryFileName}]";
 
         private readonly CurrentUserSecurity _currentUserSecurity = new CurrentUserSecurity();
 
-        public List<LibraryItemEntity> GetLibraryData()
+        public List<LibraryEntity> GetLibraryData()
         {
             _createFileIfNotExists();
             return _executeQuery(query: _getLibraryDataAction, input: new NoParams(), queryString: _selectAllQuery);
         }
 
-        public void SetLibraryData(List<LibraryItemEntity> libraryItemEntities)
+        public void SetLibraryData(List<LibraryEntity> libraryItemEntities)
         {
-            
             try
             {
-                File.WriteAllText(LibraryFileName, $"{PageNumber}, {FontSize}, {BufferSize}, {FilePath}");
+                File.WriteAllText(LibraryFileName, $"{PageNumber}, {FontSize}, {FilePath}");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
                 throw new LibraryException();
             }
             
@@ -50,45 +47,36 @@ namespace list
                 _insertQuery);
         }
 
-        public void AddLibraryEntity(LibraryItemEntity libraryItemEntity)
+        public void AddLibraryEntity(LibraryEntity libraryEntity)
         {
-            bool isNewEntity = true;
-            List<LibraryItemEntity> libraryItemEntities = GetLibraryData();
-            foreach (LibraryItemEntity itemEntity in libraryItemEntities)
-            {
-                if (itemEntity.FilePath == libraryItemEntity.FilePath)
-                {
-                    itemEntity.BufferSize = libraryItemEntity.BufferSize;
-                    itemEntity.PageNumber = libraryItemEntity.PageNumber;
-                    itemEntity.FontSize = libraryItemEntity.FontSize;
-                    isNewEntity = false;
-                    break;
-                }
-            }
-
-            if (isNewEntity)
-            {
-                libraryItemEntities.Add(libraryItemEntity);
-            }
-
+            List<LibraryEntity> libraryItemEntities = GetLibraryData();
+            libraryItemEntities.Add(libraryEntity);
             SetLibraryData(libraryItemEntities);
         }
 
-        public void DeleteLibraryEntity(string filePath)
+        public bool DeleteLibraryEntity(string filePath)
         {
             var libraryItemEntities = GetLibraryData();
-
+            int initialSize = libraryItemEntities.Count; 
             for (var i = 0; i < libraryItemEntities.Count; i++)
             {
                 var entity = libraryItemEntities[i];
                 if (entity.FilePath == filePath)
                 {
                     libraryItemEntities.RemoveAt(i);
-                    break;
                 }
             }
 
-            SetLibraryData(libraryItemEntities);
+            if (initialSize == libraryItemEntities.Count)
+            {
+                return false;
+            }
+            else
+            {
+                SetLibraryData(libraryItemEntities);
+                return true;
+            }
+            
         }
 
         private TOut _executeQuery<TIn, TOut>(Func<OleDbCommand, TIn, TOut> query, TIn input, string queryString)
@@ -104,12 +92,10 @@ namespace list
                         {
                             return query(command, input);
                         }
-                        
                     }
                 }
                 else
                 {
-                    Console.WriteLine("no access");
                     throw new NoAccessException();
                 }
             }
@@ -119,27 +105,26 @@ namespace list
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                File.WriteAllText(LibraryFileName, _fileHeader);
                 throw new LibraryException();
             }
         }
 
-        private List<LibraryItemEntity> _getLibraryDataAction(OleDbCommand command, NoParams input)
+        private List<LibraryEntity> _getLibraryDataAction(OleDbCommand command, NoParams input)
         {
             using (OleDbDataReader reader = command.ExecuteReader())
             {
-                List<LibraryItemEntity> libraryItemEntities = new List<LibraryItemEntity>();
+                List<LibraryEntity> libraryItemEntities = new List<LibraryEntity>();
 
                 while (reader.Read())
                 {
                     int pageNumber = _getIntFromTable(reader, PageNumber);
                     float fontSize = _getFloatFromTable(reader, FontSize);
-                    int bufferSize = _getIntFromTable(reader, BufferSize);
                     string filePath = reader[FilePath].ToString().Trim();
 
-                    LibraryItemEntity libraryItemEntity =
-                        new LibraryItemEntity(pageNumber, fontSize, bufferSize, filePath);
-                    libraryItemEntities.Add(libraryItemEntity);
+                    LibraryEntity libraryEntity =
+                        new LibraryEntity(pageNumber, fontSize, filePath);
+                    libraryItemEntities.Add(libraryEntity);
                 }
 
                 return libraryItemEntities;
@@ -147,15 +132,15 @@ namespace list
         }
 
         private NoParams _setLibraryDataAction(OleDbCommand command,
-            List<LibraryItemEntity> libraryItemEntities)
+            List<LibraryEntity> libraryItemEntities)
         {
             foreach (var libraryItemEntity in libraryItemEntities)
             {
                 command.Parameters.AddWithValue("?", libraryItemEntity.PageNumber);
                 command.Parameters.AddWithValue("?", libraryItemEntity.FontSize);
-                command.Parameters.AddWithValue("?", libraryItemEntity.BufferSize);
                 command.Parameters.AddWithValue("?", libraryItemEntity.FilePath);
                 command.ExecuteNonQuery();
+                command.Parameters.Clear();
             }
 
             return new NoParams();
@@ -163,18 +148,56 @@ namespace list
 
         private void _createFileIfNotExists()
         {
-            if (!File.Exists(LibraryFileName)||!File.ReadAllText(LibraryFileName).TrimStart().StartsWith(_fileHeader))
+            if (File.Exists(LibraryFileName))
+            {
+                if (_currentUserSecurity.HasAccess(new FileInfo(LibraryFileName), FileSystemRights.Read))
+                {
+                    if (!File.ReadAllText(LibraryFileName).TrimStart().StartsWith(_fileHeader))
+                    {
+                        try
+                        {
+                            File.WriteAllText(LibraryFileName, _fileHeader);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw new LibraryException();
+                        }
+                    }
+                }
+                else
+                {
+                    throw new NoAccessException();
+                }
+            }
+            else
             {
                 try
                 {
+                    if (File.GetAttributes(LibraryFileName) == FileAttributes.Directory)
+                    {
+                        throw new NoAccessException();
+                    }
+                    else
+                    {
+                        File.WriteAllText(LibraryFileName, _fileHeader);
+                    }
+
+                }
+                catch (FileNotFoundException)
+                {
                     File.WriteAllText(LibraryFileName, _fileHeader);
+                }
+                catch (NoAccessException)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
                     throw new LibraryException();
                 }
             }
+            
         }
 
         private int _getIntFromTable(OleDbDataReader reader, string parameterName)

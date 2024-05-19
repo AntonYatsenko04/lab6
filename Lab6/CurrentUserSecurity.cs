@@ -5,7 +5,7 @@ using System.Security.Principal;
 namespace list
 {
     public class CurrentUserSecurity
-    {
+    { 
         WindowsIdentity _currentUser;
     WindowsPrincipal _currentPrincipal;
 
