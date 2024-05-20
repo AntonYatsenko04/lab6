@@ -14,13 +14,17 @@ namespace list
         private readonly string _connectionString =
             $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={Directory.GetCurrentDirectory()};Extended Properties='text;HDR=yes;FMT=Delimited'";
 
+        private const string Id = "Id";
+        private const string DateTime = "DateTime";
         private const string PageNumber = "PageNumber";
         private const string FontSize = "FontSize";
         private const string FilePath = "FilePath";
-        private  string _fileHeader = $"{PageNumber}, {FontSize}, {FilePath}";
+        private  string _fileHeader = $"{Id}, {DateTime}, {PageNumber}, {FontSize}, {FilePath}";
 
         private readonly string _insertQuery =
-            $"INSERT INTO [{LibraryFileName}] ({PageNumber}, {FontSize}, {FilePath}) VALUES (?,?,?)";
+            $"INSERT INTO [{LibraryFileName}] ([{Id}], [{DateTime}], [{PageNumber}], [{FontSize}], [{FilePath}]) VALUES (?,?,?,?,?)";
+        
+
 
         private readonly string _selectAllQuery = $"SELECT * FROM [{LibraryFileName}]";
 
@@ -36,7 +40,7 @@ namespace list
         {
             try
             {
-                File.WriteAllText(LibraryFileName, $"{PageNumber}, {FontSize}, {FilePath}");
+                File.WriteAllText(LibraryFileName, _fileHeader);
             }
             catch (Exception e)
             {
@@ -106,6 +110,7 @@ namespace list
             catch (Exception e)
             {
                 File.WriteAllText(LibraryFileName, _fileHeader);
+                Console.WriteLine(e);
                 throw new LibraryException();
             }
         }
@@ -118,12 +123,18 @@ namespace list
 
                 while (reader.Read())
                 {
+                    int id = _getIntFromTable(reader, Id);
+                    if (!System.DateTime.TryParse(reader[DateTime].ToString(), out var dateTime))
+                    {
+                        throw new LibraryException();
+                    }
+                    
                     int pageNumber = _getIntFromTable(reader, PageNumber);
                     float fontSize = _getFloatFromTable(reader, FontSize);
                     string filePath = reader[FilePath].ToString().Trim();
 
                     LibraryEntity libraryEntity =
-                        new LibraryEntity(pageNumber, fontSize, filePath);
+                        new LibraryEntity(id,dateTime,pageNumber, fontSize, filePath);
                     libraryItemEntities.Add(libraryEntity);
                 }
 
@@ -131,11 +142,33 @@ namespace list
             }
         }
 
+        private int _getMaxId()
+        {
+            var lib = GetLibraryData();
+            int id = 0;
+            foreach (LibraryEntity libraryEntity in lib)
+            {
+                if (libraryEntity.Id > id)
+                {
+                    id = libraryEntity.Id??0;
+                }
+                
+            }
+
+            return id;
+        }
+
         private NoParams _setLibraryDataAction(OleDbCommand command,
             List<LibraryEntity> libraryItemEntities)
         {
+            
             foreach (var libraryItemEntity in libraryItemEntities)
             {
+                System.DateTime currentDateTime = libraryItemEntity.DateTime?? System.DateTime.Now;
+                int id =libraryItemEntity.Id?? _getMaxId()+1;
+                
+                command.Parameters.AddWithValue("?", id);
+                command.Parameters.AddWithValue("?", currentDateTime.ToString());
                 command.Parameters.AddWithValue("?", libraryItemEntity.PageNumber);
                 command.Parameters.AddWithValue("?", libraryItemEntity.FontSize);
                 command.Parameters.AddWithValue("?", libraryItemEntity.FilePath);

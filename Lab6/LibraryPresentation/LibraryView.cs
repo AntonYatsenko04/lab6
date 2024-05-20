@@ -10,7 +10,7 @@ public class LibraryView : ILibraryView
 
     public LibraryView()
     {
-        _libraryPresenter = new LibraryPresenter(new LibraryModel(),this);
+        _libraryPresenter = new LibraryPresenter(new LibraryModel(), this);
         _launchView();
     }
 
@@ -45,7 +45,7 @@ public class LibraryView : ILibraryView
                     case 4:
                         _showLibraryItemsWithName();
                         break;
-                    case 5: 
+                    case 5:
                         return;
                 }
             }
@@ -63,18 +63,44 @@ public class LibraryView : ILibraryView
         }
 
         _log("Введите размер шрифта");
-        float fontSize;
-        if (!_readNotEmptyTrimmedString(out var fontSizeStr) || !float.TryParse(fontSizeStr, out fontSize))
+        float fontSize = 0;
+        if (!_readNotEmptyTrimmedString(out var fontSizeStr))
         {
             _log("Строка неверна. В следующий раз введите дробное число");
             return;
         }
-
+        string newFontSizeStr =fontSizeStr.Replace('.', ',');
+   
+        
+        if (!float.TryParse(newFontSizeStr, out fontSize))
+        {
+            _log("Строка неверна. В следующий раз введите дробное число");
+            return;
+        }
+        
+        if (fontSize <= 0)
+        {
+            _log("Число не может быть меньше 0");
+            return;
+        }
+        
         _log("Введите номер страницы");
-        int pageNumber;
-        if (!_readNotEmptyTrimmedString(out var pageNumberStr) || !int.TryParse(pageNumberStr, out pageNumber))
+        int pageNumber = 0;
+        if (!_readNotEmptyTrimmedString(out var pageNumberStr) )
         {
             _log("Строка неверна. В следующий раз введите целое число");
+            return;
+        }
+
+        if (!int.TryParse(pageNumberStr, out pageNumber))
+        {
+            _log("Строка неверна. В следующий раз введите целое число");
+            return;
+        }
+        
+        if (pageNumber <= 0)
+        {
+            _log("Число не может быть меньше 0");
             return;
         }
 
@@ -90,9 +116,8 @@ public class LibraryView : ILibraryView
             _log(ErrorMessages.EmptyStringError);
             return;
         }
-        
+
         _libraryPresenter.DeleteLibraryItemByName(itemName);
-        
     }
 
     private void _showLibraryItemsWithName()
@@ -103,7 +128,7 @@ public class LibraryView : ILibraryView
             _log(ErrorMessages.EmptyStringError);
             return;
         }
-        
+
         _libraryPresenter.ShowLibraryItemsFilteredByName(itemName);
     }
 
@@ -129,11 +154,13 @@ public class LibraryView : ILibraryView
 
     public void ShowLibraryTable(List<LibraryEntity> libraryEntities)
     {
-        var table = new ConsoleTable("Файл", "Размер шрифта", "Страница");
+        var table = new ConsoleTable("Id", "Время", "Файл", "Размер шрифта", "Страница");
         foreach (var libraryEntity in libraryEntities)
         {
-            table.AddRow(libraryEntity.FilePath, libraryEntity.FontSize.ToString().Trim(), libraryEntity.PageNumber.ToString().Trim());
+            table.AddRow(libraryEntity.Id, libraryEntity.DateTime, libraryEntity.FilePath,
+                libraryEntity.FontSize.ToString().Trim(), libraryEntity.PageNumber.ToString().Trim());
         }
+
         table.Write();
         Console.WriteLine();
     }
