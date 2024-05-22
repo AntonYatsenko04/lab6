@@ -1,4 +1,5 @@
-﻿using list;
+﻿using System.Runtime.InteropServices;
+using list;
 
 namespace Lab6;
 
@@ -19,21 +20,9 @@ public class LibraryPresenter
         {
             _libraryView.ShowLibraryTable(_libraryModel.GetAllLibraryData());
         }
-        catch (FileParseException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
-        catch (LibraryException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
-        catch (NoAccessException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
         catch (Exception e)
         {
-            _libraryView.ShowErrorMessage(ErrorMessages.GenericError + $": {e}");
+            _libraryView.ShowErrorMessage(e.Message);
         }
     }
 
@@ -43,21 +32,47 @@ public class LibraryPresenter
         {
             _libraryView.ShowLibraryTable(_libraryModel.GetLibraryEntitiesWithName(name));
         }
-        catch (FileParseException e)
+        catch (Exception e)
         {
             _libraryView.ShowErrorMessage(e.Message);
         }
-        catch (LibraryException e)
+    }
+    
+    public void ShowLibraryItemsFilteredByDateTime([Optional] DateTime? min,[Optional] DateTime? max)
+    {
+        try
         {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
-        catch (NoAccessException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
+            
+            _libraryView.ShowLibraryTable(_libraryModel.GetLibraryEntityFilteredByDateTime(min,max));
         }
         catch (Exception e)
         {
-           _libraryView.ShowErrorMessage(ErrorMessages.GenericError + $": {e}");
+            _libraryView.ShowErrorMessage(e.Message);
+        }
+    }
+    
+    public void ShowLibraryItemsFilteredByFontSize([Optional]float? min,[Optional]float? max)
+    {
+        try
+        {
+            
+            _libraryView.ShowLibraryTable(_libraryModel.GetLibraryEntityFilteredByFontSize(min,max));
+        }
+        catch (Exception e)
+        {
+            _libraryView.ShowErrorMessage(e.Message);
+        }
+    }
+    
+    public void ShowLibraryItemsFilteredByPageNumber([Optional]int? min,[Optional]int? max)
+    {
+        try
+        {
+            _libraryView.ShowLibraryTable(_libraryModel.GetLibraryEntityFilteredByPageNumber(min,max));
+        }
+        catch (Exception e)
+        {
+            _libraryView.ShowErrorMessage(e.Message);
         }
     }
 
@@ -68,21 +83,9 @@ public class LibraryPresenter
             _libraryModel.InsertNewLibraryItem(libraryEntity);
             _libraryView.ShowMessage("Добавление произошло успешно");
         }
-        catch (FileParseException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
-        catch (LibraryException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
-        catch (NoAccessException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
         catch (Exception e)
         {
-            _libraryView.ShowErrorMessage(ErrorMessages.GenericError + $": {e}");
+            _libraryView.ShowErrorMessage(e.Message);
         }
     }
 
@@ -100,21 +103,9 @@ public class LibraryPresenter
             }
             
         }
-        catch (FileParseException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
-        catch (LibraryException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
-        catch (NoAccessException e)
-        {
-            _libraryView.ShowErrorMessage(e.Message);
-        }
         catch (Exception e)
         {
-            _libraryView.ShowErrorMessage(ErrorMessages.GenericError + $": {e}");
+            _libraryView.ShowErrorMessage(e.Message);
         }
         
     }

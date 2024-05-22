@@ -5,6 +5,13 @@ namespace list
 {
     public class NoAccessException :Exception
     {
-        public new string Message = "Ошибка доступа к файлу";
+       
+        public override string Message
+        {
+            get
+            {
+                return "Ошибка доступа к файлу";
+            }
+        } 
     }
 }

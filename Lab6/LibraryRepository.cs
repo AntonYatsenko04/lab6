@@ -80,7 +80,6 @@ namespace list
                 SetLibraryData(libraryItemEntities);
                 return true;
             }
-            
         }
 
         private TOut _executeQuery<TIn, TOut>(Func<OleDbCommand, TIn, TOut> query, TIn input, string queryString)

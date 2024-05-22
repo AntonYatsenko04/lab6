@@ -4,7 +4,13 @@ namespace list
 {
     public class LibraryException : Exception
     {
-        public new string Message = ErrorMessages.LibraryError;
+        public override string Message
+        {
+            get
+            {
+                return ErrorMessages.LibraryError;
+            }
+        } 
     }
     
 }

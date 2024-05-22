@@ -4,7 +4,7 @@ using list;
 
 namespace Lab6;
 
-public class LibraryView : ILibraryView
+public partial  class LibraryView : ILibraryView
 {
     private LibraryPresenter _libraryPresenter;
 
@@ -23,7 +23,10 @@ public class LibraryView : ILibraryView
             _log("2: Добавление элемента в библиотеку");
             _log("3: Удаление элемента из библиотеки");
             _log("4: Выбрать элементы с заданным именем");
-            _log("5: Окончить работу");
+            _log("5: Выбрать элементы с заданным диапазоном шрифта");
+            _log("6: Выбрать элементы с заданным диапазоном номера страницы");
+            _log("7: Выбрать элементы с заданным диапазоном даты создания");
+            _log("8: Окончить работу");
 
             string choice = Console.ReadLine();
 
@@ -46,6 +49,15 @@ public class LibraryView : ILibraryView
                         _showLibraryItemsWithName();
                         break;
                     case 5:
+                        _showLibraryItemsFilteredByFontSize();
+                        break;
+                    case 6:
+                        _showLibraryItemsFilteredByPageNumber();
+                        break;
+                    case 7:
+                        _showLibraryItemsFilteredByDateTime();
+                        break;
+                    case 8:
                         return;
                 }
             }
@@ -58,49 +70,18 @@ public class LibraryView : ILibraryView
         string fileName;
         if (!_readNotEmptyTrimmedString(out fileName))
         {
-            _log(ErrorMessages.EmptyStringError);
             return;
         }
 
         _log("Введите размер шрифта");
-        float fontSize = 0;
-        if (!_readNotEmptyTrimmedString(out var fontSizeStr))
+        if (!_readFontSize(out float fontSize))
         {
-            _log("Строка неверна. В следующий раз введите дробное число");
-            return;
-        }
-        string newFontSizeStr =fontSizeStr.Replace('.', ',');
-   
-        
-        if (!float.TryParse(newFontSizeStr, out fontSize))
-        {
-            _log("Строка неверна. В следующий раз введите дробное число");
-            return;
-        }
-        
-        if (fontSize <= 0)
-        {
-            _log("Число не может быть меньше 0");
             return;
         }
         
         _log("Введите номер страницы");
-        int pageNumber = 0;
-        if (!_readNotEmptyTrimmedString(out var pageNumberStr) )
+        if (!_readPageNumber(out int pageNumber))
         {
-            _log("Строка неверна. В следующий раз введите целое число");
-            return;
-        }
-
-        if (!int.TryParse(pageNumberStr, out pageNumber))
-        {
-            _log("Строка неверна. В следующий раз введите целое число");
-            return;
-        }
-        
-        if (pageNumber <= 0)
-        {
-            _log("Число не может быть меньше 0");
             return;
         }
 
@@ -113,43 +94,17 @@ public class LibraryView : ILibraryView
         _log("Введите название файла");
         if (!_readNotEmptyTrimmedString(out string itemName))
         {
-            _log(ErrorMessages.EmptyStringError);
             return;
         }
 
         _libraryPresenter.DeleteLibraryItemByName(itemName);
     }
 
-    private void _showLibraryItemsWithName()
-    {
-        _log("Введите название файла");
-        if (!_readNotEmptyTrimmedString(out string itemName))
-        {
-            _log(ErrorMessages.EmptyStringError);
-            return;
-        }
-
-        _libraryPresenter.ShowLibraryItemsFilteredByName(itemName);
-    }
+    
 
     private void _log(string message)
     {
         Console.WriteLine(message);
-    }
-
-    private bool _readNotEmptyTrimmedString(out string result)
-    {
-        string? input = Console.ReadLine();
-        if (input != null && input.Trim().Length > 0)
-        {
-            result = input.Trim();
-            return true;
-        }
-        else
-        {
-            result = "";
-            return false;
-        }
     }
 
     public void ShowLibraryTable(List<LibraryEntity> libraryEntities)
@@ -157,10 +112,16 @@ public class LibraryView : ILibraryView
         var table = new ConsoleTable("Id", "Время", "Файл", "Размер шрифта", "Страница");
         foreach (var libraryEntity in libraryEntities)
         {
-            table.AddRow(libraryEntity.Id, libraryEntity.DateTime, libraryEntity.FilePath,
-                libraryEntity.FontSize.ToString().Trim(), libraryEntity.PageNumber.ToString().Trim());
+            string id = (libraryEntity.Id >= 0 ? libraryEntity.Id.ToString() : ErrorMessages.InvalidId) ?? ErrorMessages.InvalidId;
+            string dateTime = (libraryEntity.DateTime <= DateTime.Now? libraryEntity.DateTime.ToString() : ErrorMessages.WrongDateTime) ?? ErrorMessages.WrongDateTime;
+            string pageNumber = libraryEntity.PageNumber >= 1? libraryEntity.PageNumber.ToString() :ErrorMessages.WrongPageNumber;
+            string fontSize = libraryEntity.FontSize >= 0? libraryEntity.PageNumber.ToString() :ErrorMessages.WrongPageNumber;
+            
+            
+            table.AddRow(id, dateTime, libraryEntity.FilePath,
+                fontSize, pageNumber);
         }
-
+        
         table.Write();
         Console.WriteLine();
     }
