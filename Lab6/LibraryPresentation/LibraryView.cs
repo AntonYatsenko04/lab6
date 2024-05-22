@@ -26,7 +26,8 @@ public partial  class LibraryView : ILibraryView
             _log("5: Выбрать элементы с заданным диапазоном шрифта");
             _log("6: Выбрать элементы с заданным диапазоном номера страницы");
             _log("7: Выбрать элементы с заданным диапазоном даты создания");
-            _log("8: Окончить работу");
+            _log("8: Перейти в режим комбинированной выборки");
+            _log("9: Окончить работу");
 
             string choice = Console.ReadLine();
 
@@ -58,6 +59,9 @@ public partial  class LibraryView : ILibraryView
                         _showLibraryItemsFilteredByDateTime();
                         break;
                     case 8:
+                        _showLibraryViewCombination();
+                        break;
+                    case 9:
                         return;
                 }
             }
@@ -109,20 +113,24 @@ public partial  class LibraryView : ILibraryView
 
     public void ShowLibraryTable(List<LibraryEntity> libraryEntities)
     {
-        var table = new ConsoleTable("Id", "Время", "Файл", "Размер шрифта", "Страница");
-        foreach (var libraryEntity in libraryEntities)
+        if (_canShowTable)
         {
-            string id = (libraryEntity.Id >= 0 ? libraryEntity.Id.ToString() : ErrorMessages.InvalidId) ?? ErrorMessages.InvalidId;
-            string dateTime = (libraryEntity.DateTime <= DateTime.Now? libraryEntity.DateTime.ToString() : ErrorMessages.WrongDateTime) ?? ErrorMessages.WrongDateTime;
-            string pageNumber = libraryEntity.PageNumber >= 1? libraryEntity.PageNumber.ToString() :ErrorMessages.WrongPageNumber;
-            string fontSize = libraryEntity.FontSize >= 0? libraryEntity.FontSize.ToString(CultureInfo.InvariantCulture) :ErrorMessages.WrongPageNumber;
+            var table = new ConsoleTable("Id", "Время", "Файл", "Размер шрифта", "Страница");
+            foreach (var libraryEntity in libraryEntities)
+            {
+                string id = (libraryEntity.Id >= 0 ? libraryEntity.Id.ToString() : ErrorMessages.InvalidId) ?? ErrorMessages.InvalidId;
+                string dateTime = (libraryEntity.DateTime <= DateTime.Now? libraryEntity.DateTime.ToString() : ErrorMessages.WrongDateTime) ?? ErrorMessages.WrongDateTime;
+                string pageNumber = libraryEntity.PageNumber >= 1? libraryEntity.PageNumber.ToString() :ErrorMessages.WrongPageNumber;
+                string fontSize = libraryEntity.FontSize >= 0? libraryEntity.FontSize.ToString(CultureInfo.InvariantCulture) :ErrorMessages.WrongPageNumber;
             
-            table.AddRow(id, dateTime, libraryEntity.FilePath,
-                fontSize, pageNumber);
+                table.AddRow(id, dateTime, libraryEntity.FilePath,
+                    fontSize, pageNumber);
+            }
+        
+            table.Write();
+            Console.WriteLine();
         }
         
-        table.Write();
-        Console.WriteLine();
     }
 
     public void ShowErrorMessage(string message)

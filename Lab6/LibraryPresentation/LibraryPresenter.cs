@@ -7,7 +7,7 @@ public class LibraryPresenter
 {
     private LibraryModel _libraryModel;
     private ILibraryView _libraryView;
-    private List<LibraryEntity> _libraryEntities;
+    private List<LibraryEntity> _storedLibraryEntities = new List<LibraryEntity>();
 
     public LibraryPresenter(LibraryModel libraryModel, ILibraryView libraryView)
     {
@@ -31,7 +31,9 @@ public class LibraryPresenter
     {
         try
         {
-            _libraryView.ShowLibraryTable(_libraryModel.GetLibraryEntitiesWithName(name));
+            var libraryEntites = _libraryModel.GetLibraryEntitiesWithName(name);
+            _addToStorage(libraryEntites);
+            _libraryView.ShowLibraryTable(libraryEntites);
         }
         catch (Exception e)
         {
@@ -43,8 +45,9 @@ public class LibraryPresenter
     {
         try
         {
-            
-            _libraryView.ShowLibraryTable(_libraryModel.GetLibraryEntityFilteredByDateTime(min,max));
+            var libraryEntites = _libraryModel.GetLibraryEntityFilteredByDateTime(min, max);
+            _addToStorage(libraryEntites);
+            _libraryView.ShowLibraryTable(libraryEntites);
         }
         catch (Exception e)
         {
@@ -56,8 +59,9 @@ public class LibraryPresenter
     {
         try
         {
-            
-            _libraryView.ShowLibraryTable(_libraryModel.GetLibraryEntityFilteredByFontSize(min,max));
+            var libraryEntites = _libraryModel.GetLibraryEntityFilteredByFontSize(min,max);
+            _addToStorage(libraryEntites);
+            _libraryView.ShowLibraryTable(libraryEntites);
         }
         catch (Exception e)
         {
@@ -69,7 +73,9 @@ public class LibraryPresenter
     {
         try
         {
-            _libraryView.ShowLibraryTable(_libraryModel.GetLibraryEntityFilteredByPageNumber(min,max));
+            var libraryEntites = _libraryModel.GetLibraryEntityFilteredByPageNumber(min,max);
+            _addToStorage(libraryEntites);
+            _libraryView.ShowLibraryTable(libraryEntites);
         }
         catch (Exception e)
         {
@@ -109,5 +115,39 @@ public class LibraryPresenter
             _libraryView.ShowErrorMessage(e.Message);
         }
     }
-    
+
+    public void ClearStoredTable()
+    {
+        _storedLibraryEntities.Clear();
+    }
+
+    public void ShowStoredTable()
+    {
+        _libraryView.ShowLibraryTable(_storedLibraryEntities);
+    }
+
+    private void _addToStorage(List<LibraryEntity> libraryEntities)
+    {
+        List<LibraryEntity> newStoredLibraryEntites = new List<LibraryEntity>();
+
+        if (_storedLibraryEntities.Count == 0)
+        {
+            _storedLibraryEntities.AddRange(libraryEntities);
+            return;
+        }
+        foreach (var libraryEntity in libraryEntities)
+        {
+            foreach (LibraryEntity storedLibraryEntity in _storedLibraryEntities)
+            {
+                if (libraryEntity.Id == storedLibraryEntity.Id)
+                {
+                    newStoredLibraryEntites.Add(libraryEntity);
+                }
+               
+            }
+        }
+        
+        _storedLibraryEntities.Clear();
+        _storedLibraryEntities.AddRange(newStoredLibraryEntites);
+    }
 }
