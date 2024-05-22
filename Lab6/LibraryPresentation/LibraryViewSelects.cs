@@ -27,7 +27,7 @@ public partial class LibraryView
         DateTime max = DateTime.MaxValue;
         if (selection is 1 or 3)
         {
-            _log("Введите время До в формате дд.мм.гггг чч:мм:сс");
+            _log("Введите время Мин в формате дд.мм.гггг чч:мм:сс");
             if (!_readDateTime(out min))
             {
                 return;
@@ -37,7 +37,7 @@ public partial class LibraryView
 
         if (selection is 2 or 3)
         {
-            _log("Введите время После в формате дд.мм.гггг чч:мм:сс");
+            _log("Введите время Макс в формате дд.мм.гггг чч:мм:сс");
             if (!_readDateTime(out max))
             {
                 return;
@@ -76,7 +76,7 @@ public partial class LibraryView
         float max = float.MaxValue;
         if (selection is 1 or 3)
         {
-            _log("Введите размер шрифта До");
+            _log("Введите размер шрифта Мин");
             if (! _readFontSize(out min))
             {
                 return;
@@ -85,7 +85,7 @@ public partial class LibraryView
 
         if (selection is 2 or 3)
         {
-            _log("Введите размер шрифта После");
+            _log("Введите размер шрифта Макс");
             if (! _readFontSize(out max))
             {
                 return;
@@ -125,7 +125,7 @@ public partial class LibraryView
         int max = int.MaxValue;
         if (selection is 1 or 3)
         {
-            _log("Введите номер страницы До");
+            _log("Введите номер страницы Мин");
             if (! _readPageNumber(out min))
             {
                 return;
@@ -135,7 +135,7 @@ public partial class LibraryView
 
         if (selection is 2 or 3)
         {
-            _log("Введите номер страницы После");
+            _log("Введите номер страницы Макс");
             if (! _readPageNumber(out max))
             {
                 return;

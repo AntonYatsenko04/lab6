@@ -115,8 +115,7 @@ public partial  class LibraryView : ILibraryView
             string id = (libraryEntity.Id >= 0 ? libraryEntity.Id.ToString() : ErrorMessages.InvalidId) ?? ErrorMessages.InvalidId;
             string dateTime = (libraryEntity.DateTime <= DateTime.Now? libraryEntity.DateTime.ToString() : ErrorMessages.WrongDateTime) ?? ErrorMessages.WrongDateTime;
             string pageNumber = libraryEntity.PageNumber >= 1? libraryEntity.PageNumber.ToString() :ErrorMessages.WrongPageNumber;
-            string fontSize = libraryEntity.FontSize >= 0? libraryEntity.PageNumber.ToString() :ErrorMessages.WrongPageNumber;
-            
+            string fontSize = libraryEntity.FontSize >= 0? libraryEntity.FontSize.ToString(CultureInfo.InvariantCulture) :ErrorMessages.WrongPageNumber;
             
             table.AddRow(id, dateTime, libraryEntity.FilePath,
                 fontSize, pageNumber);

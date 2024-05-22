@@ -7,6 +7,7 @@ public class LibraryPresenter
 {
     private LibraryModel _libraryModel;
     private ILibraryView _libraryView;
+    private List<LibraryEntity> _libraryEntities;
 
     public LibraryPresenter(LibraryModel libraryModel, ILibraryView libraryView)
     {
@@ -107,6 +108,6 @@ public class LibraryPresenter
         {
             _libraryView.ShowErrorMessage(e.Message);
         }
-        
     }
+    
 }
