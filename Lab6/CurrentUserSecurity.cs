@@ -20,6 +20,11 @@ namespace list
         // Get the collection of authorization rules that apply to the directory.
         AuthorizationRuleCollection acl = directory.GetAccessControl()
             .GetAccessRules(true, true, typeof(SecurityIdentifier));
+        var a = new LibraryRepository();
+        a.GetLibraryEntityFilteredByFontSize(1, 2);
+        a.GetLibraryEntityFilteredByPageNumber(1, 2);
+        a.GetLibraryEntityFilteredByName("adsd");
+        a.GetLibraryEntityFilteredByDateTime(DateTime.Now, DateTime.Now);
         return HasFileOrDirectoryAccess(right, acl);
     }
 

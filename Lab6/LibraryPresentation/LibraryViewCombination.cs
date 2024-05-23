@@ -40,6 +40,7 @@ public partial class LibraryView
                     case 5:
                         _canShowTable = true;
                         _libraryPresenter.ShowStoredTable();
+                        return;
                         break;
                 }
             }

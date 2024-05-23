@@ -24,18 +24,45 @@ namespace list
         private readonly string _insertQuery =
             $"INSERT INTO [{LibraryFileName}] ([{Id}], [{DateTime}], [{PageNumber}], [{FontSize}], [{FilePath}]) VALUES (?,?,?,?,?)";
         
-
-
         private readonly string _selectAllQuery = $"SELECT * FROM [{LibraryFileName}]";
+        private readonly string _selectByPageNumberQuery = $"SELECT * FROM [{LibraryFileName}] WHERE [{PageNumber}]>? AND [{PageNumber}]<?";
+        private readonly string _selectByFontSizeQuery = $"SELECT * FROM [{LibraryFileName}] WHERE [{FontSize}]>? AND [{FontSize}]<?";
+        private readonly string _selectByDateTimeQuery = $"SELECT * FROM [{LibraryFileName}] WHERE [{DateTime}]>? AND [{DateTime}]<?";
+        private readonly string _selectByNameQuery = $"SELECT * FROM [{LibraryFileName}] WHERE [{FilePath}]=?";
 
         private readonly CurrentUserSecurity _currentUserSecurity = new CurrentUserSecurity();
 
         public List<LibraryEntity> GetLibraryData()
         {
             _createFileIfNotExists();
-            return _executeQuery(query: _getLibraryDataAction, input: new NoParams(), queryString: _selectAllQuery);
+            return _executeQuery(query: _getLibraryDataAction, input: new List<Object>(), queryString: _selectAllQuery);
+        }
+        
+        public List<LibraryEntity> GetLibraryEntityFilteredByDateTime(DateTime? min,DateTime? max)
+        {
+            _createFileIfNotExists();
+            return _executeQuery(query: _getLibraryDataAction, input: (List<Object?>)[min,max], queryString: _selectByDateTimeQuery);
         }
 
+        public List<LibraryEntity> GetLibraryEntityFilteredByPageNumber(int? min, int? max)
+        {
+            _createFileIfNotExists();
+            return _executeQuery(query: _getLibraryDataAction, input: (List<Object?>)[min,max], queryString: _selectByPageNumberQuery);
+        }
+        
+        public List<LibraryEntity> GetLibraryEntityFilteredByFontSize(float? min, float? max)
+        {
+            _createFileIfNotExists();
+            return _executeQuery(query: _getLibraryDataAction, input: (List<Object?>)[(min ?? float.MinValue).ToString("#"),
+                (max ?? float.MaxValue).ToString("#")], queryString: _selectByFontSizeQuery);
+        }
+        
+        public List<LibraryEntity> GetLibraryEntityFilteredByName(string name)
+        {
+            _createFileIfNotExists();
+            return _executeQuery(query: _getLibraryDataAction, input: (List<Object?>)[name], queryString: _selectByNameQuery);
+        }
+        
         public void SetLibraryData(List<LibraryEntity> libraryItemEntities)
         {
             try
@@ -114,8 +141,13 @@ namespace list
             }
         }
 
-        private List<LibraryEntity> _getLibraryDataAction(OleDbCommand command, NoParams input)
+        private List<LibraryEntity> _getLibraryDataAction(OleDbCommand command, List<Object?> input)
         {
+            foreach (Object o in input)
+            {
+                command.Parameters.AddWithValue("?", o);
+            }
+
             using (OleDbDataReader reader = command.ExecuteReader())
             {
                 List<LibraryEntity> libraryItemEntities = new List<LibraryEntity>();

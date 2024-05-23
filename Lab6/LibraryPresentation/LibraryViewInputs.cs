@@ -25,6 +25,7 @@ public partial class LibraryView
     {
         if (_readNotEmptyTrimmedString(out string input))
         {
+            input = input.Replace('.', ',');
             if (DateTime.TryParse(input,out dateTime))
             {
                 if (dateTime <= DateTime.Now && dateTime > DateTime.MinValue)
